@@ -5,6 +5,7 @@ import 'package:my_slide_puzzle/models/puzzle_tile_model.dart';
 
 class PuzzleProvider extends ChangeNotifier {
   List<PuzzleTileModel> tiles = [];
+  int moves = 0;
 
   void initPuzzle({bool isNotify = true}) {
     tiles.clear();
@@ -13,7 +14,7 @@ class PuzzleProvider extends ChangeNotifier {
       for(int j = 0; j < (i == 3 ? 3 : 4); j++) {
         count++;
         PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-          id: i.toString()+j.toString(),
+          id: count.toString(),
           asset: "assets/images/dashatar/blue/${count}.png",
           originalX: i,
           originalY: j,
@@ -25,14 +26,17 @@ class PuzzleProvider extends ChangeNotifier {
     }
 
     PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-      id: "33",
+      id: "16",
       asset: "",
       originalX: 3,
       originalY: 3,
       currentX: 3,
       currentY: 3,
+      isEmptySpace: true,
     );
     tiles.add(puzzleTileModel);
+
+    moves = 0;
 
     if(isNotify) notifyListeners();
   }
@@ -89,6 +93,55 @@ class PuzzleProvider extends ChangeNotifier {
   }
 
   void moveTile(PuzzleTileModel puzzleTileModel) {
+    print("moveTile called");
+    List<PuzzleTileModel> list = tiles.where((element) => element.isEmptySpace).toList();
+    if(list.isNotEmpty) {
+      PuzzleTileModel whiteSpaceModel = list.first;
 
+      //To Check If Move is Valid Or Not
+      if(puzzleTileModel.currentX == whiteSpaceModel.currentX || puzzleTileModel.currentY == whiteSpaceModel.currentY) {
+        print("valid");
+        int deltaX = whiteSpaceModel.currentX - puzzleTileModel.currentX;
+        int deltaY = whiteSpaceModel.currentY - puzzleTileModel.currentY;
+
+        if(deltaX == 0) {
+          List<PuzzleTileModel> compoentsBetweenStartAndEnd = tiles.where((element) => deltaY > 0
+              ? (element.currentY > puzzleTileModel.currentY && element.currentY < whiteSpaceModel.currentY && element.currentX == puzzleTileModel.currentX)
+              : (element.currentY > whiteSpaceModel.currentY && element.currentY < puzzleTileModel.currentY && element.currentX == puzzleTileModel.currentX)).toList();
+          print("Components Between Length:${compoentsBetweenStartAndEnd.length}");
+          compoentsBetweenStartAndEnd.forEach((element) {
+            element.currentY = element.currentY + (deltaY > 0 ? 1 : -1);
+          });
+          whiteSpaceModel.currentY = puzzleTileModel.currentY;
+          puzzleTileModel.currentY = puzzleTileModel.currentY + (deltaY > 0 ? 1 : -1);
+        }
+        else {
+          List<PuzzleTileModel> compoentsBetweenStartAndEnd = tiles.where((element) => deltaX > 0
+              ? (element.currentX > puzzleTileModel.currentX && element.currentX < whiteSpaceModel.currentX && element.currentY == puzzleTileModel.currentY)
+              : (element.currentX > whiteSpaceModel.currentX && element.currentX < puzzleTileModel.currentX && element.currentY == puzzleTileModel.currentY)).toList();
+          print("Components Between Length:${compoentsBetweenStartAndEnd.length}");
+          compoentsBetweenStartAndEnd.forEach((element) {
+            element.currentX = element.currentX + (deltaX > 0 ? 1 : -1);
+          });
+          whiteSpaceModel.currentX = puzzleTileModel.currentX;
+          puzzleTileModel.currentX = puzzleTileModel.currentX + (deltaX > 0 ? 1 : -1);
+        }
+
+        moves++;
+        sort();
+      }
+    }
+  }
+
+  bool _isValidToMove(PuzzleTileModel puzzleTileModel) {
+    bool isValid = false;
+
+    List<PuzzleTileModel> list = tiles.where((element) => element.isEmptySpace).toList();
+    if(list.isNotEmpty) {
+      PuzzleTileModel whiteSpaceModel = list.first;
+      if(puzzleTileModel.currentX == whiteSpaceModel.currentX || puzzleTileModel.currentY == whiteSpaceModel.currentY) isValid = true;
+    }
+
+    return isValid;
   }
 }

@@ -27,14 +27,16 @@ class _PuzzleState extends State<Puzzle> {
             mainAxisAlignment: MainAxisAlignment.center,
             //crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              getPuzzleTilesGridWidget(puzzleProvider.tiles),
+              Text("${puzzleProvider.moves} Moves"),
+
+              getPuzzleTilesGridWidget(puzzleProvider.tiles, puzzleProvider),
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   getButton("Suffle", () => puzzleProvider.suffle()),
-                  //getButton("Reorder", () => puzzleProvider.reorder()),
-                  //getButton("Init", () => puzzleProvider.initPuzzle()),
+                  getButton("Reorder", () => puzzleProvider.reorder()),
+                  getButton("Init", () => puzzleProvider.initPuzzle()),
                 ],
               ),
             ],
@@ -44,7 +46,7 @@ class _PuzzleState extends State<Puzzle> {
     );
   }
 
-  Widget getPuzzleTilesGridWidget(List<PuzzleTileModel> list) {
+  Widget getPuzzleTilesGridWidget(List<PuzzleTileModel> list, PuzzleProvider puzzleProvider) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Center(
@@ -56,20 +58,27 @@ class _PuzzleState extends State<Puzzle> {
             crossAxisSpacing: 1,
             mainAxisSpacing: 1,
           ),
-          children: list.map((e) => getPuzzleTileWIdget(e)).toList(),
+          children: list.map((e) => getPuzzleTileWIdget(e, puzzleProvider)).toList(),
         ),
       ),
     );
   }
 
-  Widget getPuzzleTileWIdget(PuzzleTileModel model) {
-    if(model.asset.isEmpty) return const SizedBox();
+  Widget getPuzzleTileWIdget(PuzzleTileModel model, PuzzleProvider puzzleProvider) {
+    if(model.isEmptySpace) return const SizedBox();
     return InkWell(
       onTap: () {
-        
+        if(model.asset.isNotEmpty) {
+          puzzleProvider.moveTile(model);
+        }
       },
       child: Container(
-        child: Image.asset(model.asset),
+        //child: Image.asset(model.asset),
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Center(child: Text(model.id, style: TextStyle(color: Colors.white, fontSize: 30),)),
       ),
     );
   }
@@ -81,7 +90,7 @@ class _PuzzleState extends State<Puzzle> {
       },
       child: Container(
         margin: const EdgeInsets.only(top: 30, left: 10, right: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.blue,
           borderRadius: BorderRadius.circular(30),
