@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:my_slide_puzzle/view/homescreen/homescreen.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/puzzle_provider.dart';
@@ -9,21 +10,7 @@ import 'view/puzzle/puzzle.dart';
 GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  runApp(const MainApp());
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => PuzzleProvider(), lazy: false,),
-      ],
-      child: App(),
-    );
-  }
+  runApp(const App());
 }
 
 
@@ -164,7 +151,7 @@ class _AppState extends State<App> {
           accentColor: const Color(0xFF13B9FF),
         ),
       ),
-      home: Puzzle(),
+      home: HomeScreen(),
     );
   }
 }
