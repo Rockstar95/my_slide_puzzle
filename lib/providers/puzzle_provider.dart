@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:my_slide_puzzle/controllers/puzzle_box_controller.dart';
 import 'package:my_slide_puzzle/models/puzzle_tile_model.dart';
 
@@ -20,11 +22,24 @@ class PuzzleProvider extends ChangeNotifier {
       int count = 0;
       for(int i = 0; i < 4; i++) {
         for(int j = 0; j < 4; j++) {
-          if(i == 3 && j == 3) {}
+          count++;
+          PuzzleTileModel puzzleTileModel;
+          if(i == 3 && j == 3) {
+            puzzleTileModel = PuzzleTileModel(
+              id: count,
+              asset1: "",
+              asset2: "",
+              asset3: "",
+              originalX: j,
+              originalY: i,
+              currentX: j,
+              currentY: i,
+              isEmptySpace: true,
+            );
+          }
           else {
-            count++;
-            PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-              id: count.toString(),
+            puzzleTileModel = PuzzleTileModel(
+              id: count,
               asset1: "assets/images/dashatar/blue/${count}.png",
               asset2: "assets/images/dashatar/green/${count}.png",
               asset3: "assets/images/dashatar/yellow/${count}.png",
@@ -33,25 +48,11 @@ class PuzzleProvider extends ChangeNotifier {
               currentX: j,
               currentY: i,
             );
-            PuzzleBoxController puzzleBoxController = PuzzleBoxController(puzzleTileModel);
-            controllers.add(puzzleBoxController);
           }
+          PuzzleBoxController puzzleBoxController = PuzzleBoxController(puzzleTileModel);
+          controllers.add(puzzleBoxController);
         }
       }
-
-      PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-        id: "16",
-        asset1: "",
-        asset2: "",
-        asset3: "",
-        originalX: 3,
-        originalY: 3,
-        currentX: 3,
-        currentY: 3,
-        isEmptySpace: true,
-      );
-      PuzzleBoxController puzzleBoxController = PuzzleBoxController(puzzleTileModel);
-      controllers.add(puzzleBoxController);
     }
 
     moves = 0;
@@ -111,7 +112,7 @@ class PuzzleProvider extends ChangeNotifier {
     await suffle();
   }
 
-  void moveTile(PuzzleBoxController puzzleBoxController) {
+  void moveTile(BuildContext context, PuzzleBoxController puzzleBoxController) {
     print("moveTile called");
     List<PuzzleBoxController> list = controllers.where((element) => element.puzzleTileModel.isEmptySpace).toList();
     if(list.isNotEmpty) {
@@ -120,6 +121,7 @@ class PuzzleProvider extends ChangeNotifier {
       //To Check If Move is Valid Or Not
       if(puzzleBoxController.puzzleTileModel.currentX == whiteSpaceModelCntroller.puzzleTileModel.currentX || puzzleBoxController.puzzleTileModel.currentY == whiteSpaceModelCntroller.puzzleTileModel.currentY) {
         print("valid");
+
         int deltaY = whiteSpaceModelCntroller.puzzleTileModel.currentX - puzzleBoxController.puzzleTileModel.currentX;
         int deltaX = whiteSpaceModelCntroller.puzzleTileModel.currentY - puzzleBoxController.puzzleTileModel.currentY;
 
@@ -158,9 +160,51 @@ class PuzzleProvider extends ChangeNotifier {
         });
 
         moves++;
+
+        bool isCompleted = checkGameCompleted();
+
+        if(isCompleted) {
+          AssetsAudioPlayer.newPlayer().open(
+            Audio("assets/audio/Full.wav"),
+            autoStart: true,
+            showNotification: true,
+            volume: 100,
+          );
+
+          /*showDialog(context: context, builder: (BuildContext context) {
+            return Dialog(
+              child: Container(
+                color: Colors.white,
+                child: Text("Competed"),
+              ),
+            );
+          });*/
+        }
+        else {
+          AssetsAudioPlayer.newPlayer().open(
+            Audio("assets/audio/Individual/${puzzleBoxController.puzzleTileModel.id}.wav"),
+            autoStart: true,
+            showNotification: true,
+            volume: 100,
+          );
+        }
+
+        notifyListeners();
       }
     }
-    notifyListeners();
+  }
+
+  bool checkGameCompleted() {
+    bool isCompleted = true;
+
+    controllers.forEach((element) {
+      if(element.puzzleTileModel.currentX == element.puzzleTileModel.originalX && element.puzzleTileModel.currentY == element.puzzleTileModel.originalY) {}
+      else {
+        isCompleted = false;
+      }
+    });
+
+    return isCompleted;
   }
 
   /*bool _isValidToMove(PuzzleTileModel puzzleTileModel) {

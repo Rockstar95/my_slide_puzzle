@@ -43,7 +43,7 @@ class _PuzzleTileWidgetState extends State<PuzzleTileWidget> {
       child: InkWell(
         onTap: () {
           if(!widget.puzzleBoxController.puzzleTileModel.isEmptySpace) {
-            puzzleProvider.moveTile(widget.puzzleBoxController);
+            puzzleProvider.moveTile(context, widget.puzzleBoxController);
           }
         },
         child: SizedBox(
@@ -57,7 +57,7 @@ class _PuzzleTileWidgetState extends State<PuzzleTileWidget> {
             ),
             //child: Center(child: Text(widget.puzzleBoxController.puzzleTileModel.id, style: const TextStyle(color: Colors.white, fontSize: 30),)),
             child: widget.isShowNumber
-              ? Center(child: Text(widget.puzzleBoxController.puzzleTileModel.id, style: const TextStyle(color: Colors.white, fontSize: 30),))
+              ? Center(child: Text(widget.puzzleBoxController.puzzleTileModel.id.toString(), style: const TextStyle(color: Colors.white, fontSize: 30),))
               : Image.asset(imagePath),
           ),
         ),

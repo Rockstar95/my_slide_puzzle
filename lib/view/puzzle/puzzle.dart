@@ -35,66 +35,71 @@ class _PuzzleState extends State<Puzzle> {
             }
 
             return Scaffold(
-              body: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                //crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text("${puzzleProvider.moves} Moves | ${puzzleProvider.unsolvedCount} Tiles"),
-                  const SizedBox(height: 10,),
-                  getPuzzleTilesGridWidget((MediaQuery.of(context).size.width * 0.9).toInt(), puzzleProvider.controllers),
-                  const SizedBox(height: 10,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      getButton("Restart", () async {
-                        await puzzleProvider.restartGame();
-                      }),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10,),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      getButton("Suffle", () async {
-                        await puzzleProvider.suffle();
-                      }),
-                      getButton("Reorder", () async {
-                        await puzzleProvider.reorder();
-                      }),
-                      getButton("Init", () async {
-                        await puzzleProvider.initPuzzle();
-                      }),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10,),
-
-                  Visibility(
-                    visible: !widget.isShowNumbers,
-                    child: Row(
+              backgroundColor: Colors.grey.shade200,
+              body: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  //crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text("${puzzleProvider.moves} Moves | ${puzzleProvider.unsolvedCount} Tiles"),
+                    const SizedBox(height: 10,),
+                    getPuzzleTilesGridWidget((MediaQuery.of(context).size.width * 0.9).toInt(), puzzleProvider.controllers),
+                    const SizedBox(height: 10,),
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        getAssetButton("assets/images/dashatar/gallery/blue.png", () async {
-                          setState(() {
-                            selectedIndex = 0;
-                          });
-                        }, selectedIndex == 0),
-                        getAssetButton("assets/images/dashatar/gallery/green.png", () async {
-                          setState(() {
-                            selectedIndex = 1;
-                          });
-                        }, selectedIndex == 1),
-                        getAssetButton("assets/images/dashatar/gallery/yellow.png", () async {
-                          setState(() {
-                            selectedIndex = 2;
-                          });
-                        }, selectedIndex == 2),
+                        getButton("Restart", () async {
+                          await puzzleProvider.restartGame();
+                        }),
                       ],
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 10,),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        getButton("Suffle", () async {
+                          await puzzleProvider.suffle();
+                        }),
+                        getButton("Reorder", () async {
+                          await puzzleProvider.reorder();
+                        }),
+                        getButton("Init", () async {
+                          await puzzleProvider.initPuzzle();
+                        }),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10,),
+
+                    Visibility(
+                      visible: !widget.isShowNumbers,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          getAssetButton("assets/images/dashatar/gallery/blue.png", () async {
+                            setState(() {
+                              selectedIndex = 0;
+                            });
+                          }, selectedIndex == 0),
+                          getAssetButton("assets/images/dashatar/gallery/green.png", () async {
+                            setState(() {
+                              selectedIndex = 1;
+                            });
+                          }, selectedIndex == 1),
+                          getAssetButton("assets/images/dashatar/gallery/yellow.png", () async {
+                            setState(() {
+                              selectedIndex = 2;
+                            });
+                          }, selectedIndex == 2),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 50,),
+                  ],
+                ),
               ),
             );
           },

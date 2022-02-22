@@ -38,6 +38,7 @@ dependencies:
   google_fonts: ^2.1.0
   intl: ^0.17.0
   provider: ^6.0.2
+  assets_audio_player: ^3.0.4+1
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ flutter:
 
   assets:
     - assets/audio/
+    - assets/audio/Individual/
     - assets/images/
     - assets/images/audio_control/
     - assets/images/dashatar/gallery/

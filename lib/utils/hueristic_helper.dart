@@ -1,11 +1,49 @@
 import 'dart:math';
 
+import 'package:my_slide_puzzle/controllers/puzzle_box_controller.dart';
+import 'package:my_slide_puzzle/models/puzzle_tile_model.dart';
+
 class HueristicHelper {
   int boxDimension = 4, tilesCount = 16;
 
   void solveIt(List<int> board, List<int> goal) {
     while(!_compareBoards(board, goal)) {
       board = _hueriaticNextState(board, goal);
+    }
+  }
+
+  void solveIt2(List<PuzzleBoxController> board) {
+    List<int> goal = List.generate(16, (index) => index + 1);
+
+    List<int> board = [];
+    List<PuzzleBoxController> newBoard = List.from(board);
+    newBoard.sort((a, b) {
+      return a.puzzleTileModel.currentX.compareTo(b.puzzleTileModel.currentX);
+    });
+    newBoard.sort((a, b) {
+      if(a.puzzleTileModel.currentX != b.puzzleTileModel.currentX) return 0;
+      return a.puzzleTileModel.currentY.compareTo(b.puzzleTileModel.currentY);
+    });
+
+    for (PuzzleBoxController element in newBoard) {
+      board.add(element.puzzleTileModel.id);
+    }
+
+    while(!_compareBoards(board, goal)) {
+      board = _hueriaticNextState(board, goal);
+
+      List<PuzzleTileModel> list = [];
+      board.forEach((element) {
+        List<PuzzleBoxController> tiles= newBoard.where((element) => element.puzzleTileModel.id == element).toList();
+        if(tiles.isNotEmpty) {
+          PuzzleTileModel tempModel = tiles.first.puzzleTileModel;
+          PuzzleTileModel puzzleTileModel1 = PuzzleTileModel(
+            id: tempModel.id,
+
+          );
+          list.add(puzzleTileModel1);
+        }
+      });
     }
   }
 

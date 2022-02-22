@@ -14,23 +14,25 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(child: Puzzle(isShowNumbers: isNumbers,)),
-          const SizedBox(height: 10,),
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(child: Puzzle(isShowNumbers: isNumbers,)),
+            const SizedBox(height: 10,),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Show Numbers"),
-              Switch(value: isNumbers, onChanged: (value) {
-                isNumbers = value;
-                setState(() {});
-              }),
-            ],
-          )
-        ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Show Numbers"),
+                Switch(value: isNumbers, onChanged: (value) {
+                  isNumbers = value;
+                  setState(() {});
+                }),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
