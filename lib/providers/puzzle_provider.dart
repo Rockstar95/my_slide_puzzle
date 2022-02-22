@@ -1,49 +1,69 @@
 import 'dart:math';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:my_slide_puzzle/controllers/puzzle_box_controller.dart';
 import 'package:my_slide_puzzle/models/puzzle_tile_model.dart';
 
 class PuzzleProvider extends ChangeNotifier {
-  List<PuzzleTileModel> tiles = [];
-  int moves = 0;
+  List<PuzzleBoxController> controllers = [];
+  int moves = 0, unsolvedCount = 15;
 
-  void initPuzzle({bool isNotify = true}) {
-    tiles.clear();
-    int count = 0;
-    for(int i = 0; i < 4; i++) {
-      for(int j = 0; j < (i == 3 ? 3 : 4); j++) {
-        count++;
-        PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-          id: count.toString(),
-          asset: "assets/images/dashatar/blue/${count}.png",
-          originalX: i,
-          originalY: j,
-          currentX: i,
-          currentY: j,
-        );
-        tiles.add(puzzleTileModel);
+  Future<void> initPuzzle({bool isNotify = true}) async {
+    if(controllers.isNotEmpty) {
+      for(int i = 0; i < controllers.length; i++) {
+        PuzzleBoxController puzzleBoxController = controllers[i];
+        puzzleBoxController.puzzleTileModel.currentX = puzzleBoxController.puzzleTileModel.originalX;
+        puzzleBoxController.puzzleTileModel.currentY = puzzleBoxController.puzzleTileModel.originalY;
       }
     }
-
-    PuzzleTileModel puzzleTileModel = PuzzleTileModel(
-      id: "16",
-      asset: "",
-      originalX: 3,
-      originalY: 3,
-      currentX: 3,
-      currentY: 3,
-      isEmptySpace: true,
-    );
-    tiles.add(puzzleTileModel);
+    else {
+      int count = 0;
+      for(int i = 0; i < 4; i++) {
+        for(int j = 0; j < 4; j++) {
+          count++;
+          PuzzleTileModel puzzleTileModel;
+          if(i == 3 && j == 3) {
+            puzzleTileModel = PuzzleTileModel(
+              id: count,
+              asset1: "",
+              asset2: "",
+              asset3: "",
+              originalX: j,
+              originalY: i,
+              currentX: j,
+              currentY: i,
+              isEmptySpace: true,
+            );
+          }
+          else {
+            puzzleTileModel = PuzzleTileModel(
+              id: count,
+              asset1: "assets/images/dashatar/blue/${count}.png",
+              asset2: "assets/images/dashatar/green/${count}.png",
+              asset3: "assets/images/dashatar/yellow/${count}.png",
+              originalX: j,
+              originalY: i,
+              currentX: j,
+              currentY: i,
+            );
+          }
+          PuzzleBoxController puzzleBoxController = PuzzleBoxController(puzzleTileModel);
+          controllers.add(puzzleBoxController);
+        }
+      }
+    }
 
     moves = 0;
 
     if(isNotify) notifyListeners();
+    await Future.delayed(controllers.first.duration);
   }
 
-  void suffle() {
-    if(tiles.isEmpty) {
-      initPuzzle(isNotify: false);
+  Future<void> suffle() async {
+    if(controllers.isEmpty) {
+      await initPuzzle(isNotify: false);
     }
 
     List<List<bool>> used = List.generate(4, (index) => List.generate(4, (index) => false));
@@ -58,82 +78,136 @@ class PuzzleProvider extends ChangeNotifier {
         tempY = random.nextInt(4);
       }
 
-      PuzzleTileModel puzzleTileModel = tiles[i];
+      PuzzleTileModel puzzleTileModel = controllers[i].puzzleTileModel;
       puzzleTileModel.currentX = tempX;
       puzzleTileModel.currentY = tempY;
       used[tempX][tempY] = true;
     }
-
-    sort();
-  }
-
-  void sort() {
-    tiles.sort((a, b) {
-      return a.currentX.compareTo(b.currentX);
-    });
-    tiles.sort((a, b) {
-      if(a.currentX != b.currentX) return 0;
-      return a.currentY.compareTo(b.currentY);
-    });
     notifyListeners();
+    await Future.delayed(controllers.first.duration);
   }
 
-  void reorder() {
-    if(tiles.isEmpty) {
-      initPuzzle(isNotify: true);
+  Future<void> reorder() async {
+    if(controllers.isEmpty) {
+      await initPuzzle(isNotify: true);
     }
     else {
-      tiles.forEach((element) {
-        element.currentX = element.originalX;
-        element.currentY = element.originalY;
+      controllers.forEach((element) {
+        element.puzzleTileModel.currentX = element.puzzleTileModel.originalX;
+        element.puzzleTileModel.currentY = element.puzzleTileModel.originalY;
       });
-      sort();
       notifyListeners();
+      await Future.delayed(controllers.first.duration);
     }
   }
 
-  void moveTile(PuzzleTileModel puzzleTileModel) {
+  Future restartGame() async {
+    Duration waitDuration = const Duration(milliseconds: 170);
+
+    moves = 0;
+    await suffle();
+    await Future.delayed(waitDuration);
+    await suffle();
+    await Future.delayed(waitDuration);
+    await suffle();
+  }
+
+  void moveTile(BuildContext context, PuzzleBoxController puzzleBoxController) {
     print("moveTile called");
-    List<PuzzleTileModel> list = tiles.where((element) => element.isEmptySpace).toList();
+    List<PuzzleBoxController> list = controllers.where((element) => element.puzzleTileModel.isEmptySpace).toList();
     if(list.isNotEmpty) {
-      PuzzleTileModel whiteSpaceModel = list.first;
+      PuzzleBoxController whiteSpaceModelCntroller = list.first;
 
       //To Check If Move is Valid Or Not
-      if(puzzleTileModel.currentX == whiteSpaceModel.currentX || puzzleTileModel.currentY == whiteSpaceModel.currentY) {
+      if(puzzleBoxController.puzzleTileModel.currentX == whiteSpaceModelCntroller.puzzleTileModel.currentX || puzzleBoxController.puzzleTileModel.currentY == whiteSpaceModelCntroller.puzzleTileModel.currentY) {
         print("valid");
-        int deltaX = whiteSpaceModel.currentX - puzzleTileModel.currentX;
-        int deltaY = whiteSpaceModel.currentY - puzzleTileModel.currentY;
 
-        if(deltaX == 0) {
-          List<PuzzleTileModel> compoentsBetweenStartAndEnd = tiles.where((element) => deltaY > 0
-              ? (element.currentY > puzzleTileModel.currentY && element.currentY < whiteSpaceModel.currentY && element.currentX == puzzleTileModel.currentX)
-              : (element.currentY > whiteSpaceModel.currentY && element.currentY < puzzleTileModel.currentY && element.currentX == puzzleTileModel.currentX)).toList();
-          print("Components Between Length:${compoentsBetweenStartAndEnd.length}");
+        int deltaY = whiteSpaceModelCntroller.puzzleTileModel.currentX - puzzleBoxController.puzzleTileModel.currentX;
+        int deltaX = whiteSpaceModelCntroller.puzzleTileModel.currentY - puzzleBoxController.puzzleTileModel.currentY;
+
+        print("DeltaX:${deltaX}");
+        print("DeltaY:${deltaY}");
+
+        if(deltaY == 0) {
+          List<PuzzleBoxController> compoentsBetweenStartAndEnd = controllers.where((element) => deltaX > 0
+              ? (element.puzzleTileModel.currentY > puzzleBoxController.puzzleTileModel.currentY && element.puzzleTileModel.currentY < whiteSpaceModelCntroller.puzzleTileModel.currentY && element.puzzleTileModel.currentX == puzzleBoxController.puzzleTileModel.currentX)
+              : (element.puzzleTileModel.currentY > whiteSpaceModelCntroller.puzzleTileModel.currentY && element.puzzleTileModel.currentY < puzzleBoxController.puzzleTileModel.currentY && element.puzzleTileModel.currentX == puzzleBoxController.puzzleTileModel.currentX)).toList();
+          print("Y Components Between Length:${compoentsBetweenStartAndEnd.length}");
           compoentsBetweenStartAndEnd.forEach((element) {
-            element.currentY = element.currentY + (deltaY > 0 ? 1 : -1);
+            element.puzzleTileModel.currentY = element.puzzleTileModel.currentY + (deltaX > 0 ? 1 : -1);
           });
-          whiteSpaceModel.currentY = puzzleTileModel.currentY;
-          puzzleTileModel.currentY = puzzleTileModel.currentY + (deltaY > 0 ? 1 : -1);
+          whiteSpaceModelCntroller.puzzleTileModel.currentY = puzzleBoxController.puzzleTileModel.currentY;
+          puzzleBoxController.puzzleTileModel.currentY = puzzleBoxController.puzzleTileModel.currentY + (deltaX > 0 ? 1 : -1);
         }
         else {
-          List<PuzzleTileModel> compoentsBetweenStartAndEnd = tiles.where((element) => deltaX > 0
-              ? (element.currentX > puzzleTileModel.currentX && element.currentX < whiteSpaceModel.currentX && element.currentY == puzzleTileModel.currentY)
-              : (element.currentX > whiteSpaceModel.currentX && element.currentX < puzzleTileModel.currentX && element.currentY == puzzleTileModel.currentY)).toList();
-          print("Components Between Length:${compoentsBetweenStartAndEnd.length}");
+          List<PuzzleBoxController> compoentsBetweenStartAndEnd = controllers.where((element) => deltaY > 0
+              ? (element.puzzleTileModel.currentX > puzzleBoxController.puzzleTileModel.currentX && element.puzzleTileModel.currentX < whiteSpaceModelCntroller.puzzleTileModel.currentX && element.puzzleTileModel.currentY == puzzleBoxController.puzzleTileModel.currentY)
+              : (element.puzzleTileModel.currentX > whiteSpaceModelCntroller.puzzleTileModel.currentX && element.puzzleTileModel.currentX < puzzleBoxController.puzzleTileModel.currentX && element.puzzleTileModel.currentY == puzzleBoxController.puzzleTileModel.currentY)).toList();
+          print("X Components Between Length:${compoentsBetweenStartAndEnd.length}");
           compoentsBetweenStartAndEnd.forEach((element) {
-            element.currentX = element.currentX + (deltaX > 0 ? 1 : -1);
+            element.puzzleTileModel.currentX = element.puzzleTileModel.currentX + (deltaY > 0 ? 1 : -1);
           });
-          whiteSpaceModel.currentX = puzzleTileModel.currentX;
-          puzzleTileModel.currentX = puzzleTileModel.currentX + (deltaX > 0 ? 1 : -1);
+          whiteSpaceModelCntroller.puzzleTileModel.currentX = puzzleBoxController.puzzleTileModel.currentX;
+          puzzleBoxController.puzzleTileModel.currentX = puzzleBoxController.puzzleTileModel.currentX + (deltaY > 0 ? 1 : -1);
         }
 
+        unsolvedCount = 0;
+
+        controllers.forEach((element) {
+          if(element.puzzleTileModel.currentX != element.puzzleTileModel.originalX || element.puzzleTileModel.currentY != element.puzzleTileModel.originalY) {
+            unsolvedCount++;
+          }
+        });
+
         moves++;
-        sort();
+
+        bool isCompleted = checkGameCompleted();
+
+        if(isCompleted) {
+          AssetsAudioPlayer.newPlayer().open(
+            Audio("assets/audio/Full.wav"),
+            autoStart: true,
+            showNotification: true,
+            volume: 100,
+          );
+
+          /*showDialog(context: context, builder: (BuildContext context) {
+            return Dialog(
+              child: Container(
+                color: Colors.white,
+                child: Text("Competed"),
+              ),
+            );
+          });*/
+        }
+        else {
+          AssetsAudioPlayer.newPlayer().open(
+            Audio("assets/audio/Individual/${puzzleBoxController.puzzleTileModel.id}.wav"),
+            autoStart: true,
+            showNotification: true,
+            volume: 100,
+          );
+        }
+
+        notifyListeners();
       }
     }
   }
 
-  bool _isValidToMove(PuzzleTileModel puzzleTileModel) {
+  bool checkGameCompleted() {
+    bool isCompleted = true;
+
+    controllers.forEach((element) {
+      if(element.puzzleTileModel.currentX == element.puzzleTileModel.originalX && element.puzzleTileModel.currentY == element.puzzleTileModel.originalY) {}
+      else {
+        isCompleted = false;
+      }
+    });
+
+    return isCompleted;
+  }
+
+  /*bool _isValidToMove(PuzzleTileModel puzzleTileModel) {
     bool isValid = false;
 
     List<PuzzleTileModel> list = tiles.where((element) => element.isEmptySpace).toList();
@@ -143,5 +217,16 @@ class PuzzleProvider extends ChangeNotifier {
     }
 
     return isValid;
-  }
+  }*/
+
+  /*void sort() {
+      tiles.sort((a, b) {
+        return a.currentX.compareTo(b.currentX);
+      });
+      tiles.sort((a, b) {
+        if(a.currentX != b.currentX) return 0;
+        return a.currentY.compareTo(b.currentY);
+      });
+      notifyListeners();
+    }*/
 }
