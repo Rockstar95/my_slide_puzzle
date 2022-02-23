@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:my_slide_puzzle/controllers/puzzle_box_controller.dart';
-import 'package:my_slide_puzzle/models/puzzle_tile_model.dart';
 import 'package:my_slide_puzzle/providers/puzzle_provider.dart';
 import 'package:my_slide_puzzle/view/puzzle/components/puzzle_tile_widget.dart';
 import 'package:provider/provider.dart';
